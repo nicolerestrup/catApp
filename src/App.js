@@ -1,18 +1,10 @@
 import React from 'react';
 //import logo from './logo.svg';
 import './App.css';
-import getRandomInt from './getRandomInt';
 import MyHeader from './MyHeader';
+import { getFactsNotYetSelected, getRandomSelectedFact, initialisedFacts } from './adjectives';
+import axios from 'axios';
 
-const facts = [
-  "Cute",
-  "Fun",
-  "Unpredictable",
-  "Nice",
-  "Charming",
-  "Dynamic",
-  "Fearless",
-]
 
 class App extends React.Component {
   constructor() {
@@ -21,16 +13,21 @@ class App extends React.Component {
       selected: []
     }
   }
+  componentDidMount() {
+    this.refresh()
+  }
+
+  refresh = () => {
+    axios.get('http://localhost:3001/adjectives').then((response) => {
+      initialisedFacts(response.data)
+      this.setState({allFacts:response.data})
+    })
+  }
 
   plusHandler = () => {
     const selected = this.state.selected.slice()
-    const factsNotYetSelected = facts.filter(function(fact) {
-      if (selected.indexOf(fact) === -1)
-        return true
-      else 
-        return false
-    })
-    const randomSelectedFact = factsNotYetSelected[getRandomInt(0, factsNotYetSelected.length)]
+    const factsNotYetSelected = getFactsNotYetSelected(selected)
+    const randomSelectedFact = getRandomSelectedFact(factsNotYetSelected)
     selected.push(randomSelectedFact)
     this.setState({
       selected: selected,
@@ -45,25 +42,33 @@ class App extends React.Component {
     })
   }
 
-  isRemoveHandlerDisabled = () => {
+  isRemoveButtonDisabled = () => {
     const selected = this.state.selected
     if (selected.length > 0) return false
     else return true
   }
 
+  isAddButtonDisabled = () => {
+    const selected = this.state.selected
+    const factsNotYetSelected = getFactsNotYetSelected(selected)
+    if (factsNotYetSelected.length === 0) return true
+    else return false
+  }
+
   render() {
     return (
       <div className="App">
-        <MyHeader/>
-      <h2>
+        <MyHeader text = "Fancy cat adjectivisor!" />
+        <h2>
           Cats are...
       </h2>
         <div className="buttonContainer">
-          <button className="buttonStyle" onClick={this.plusHandler}>+</button>
-          <button className="buttonStyle" disabled={this.isRemoveHandlerDisabled()} onClick={this.removeHandler}>-</button>
+          <button className="buttonStyle" disabled={this.isAddButtonDisabled()} onClick={this.plusHandler}>+</button>
+          <button className="buttonStyle" disabled={this.isRemoveButtonDisabled()} onClick={this.removeHandler}>-</button>
+          <button className="buttonStyle" onClick={this.refresh}>Refresh</button>
         </div>
         <ul>
-          {this.state.selected.map(fact => (<li>{fact}</li>))}
+          {this.state.selected.map(fact => (<li key = {fact} >{fact}</li>))}
         </ul>
       </div>
     );

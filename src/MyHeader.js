@@ -1,8 +1,8 @@
 import React from 'react';
 
-function MyHeader() {
+function MyHeader({text}) {
     return <header className="App-header">
-            Fancy cat adjectivisor
+            {text}
         </header>
   }
   export default MyHeader;
